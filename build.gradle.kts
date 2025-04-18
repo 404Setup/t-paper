@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "one.tranic"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
@@ -28,9 +28,9 @@ dependencies {
 
     compileOnly("com.viaversion:viaversion-api:5.2.2-SNAPSHOT")
 
-    implementation("one.tranic:t-base:1.2.6")
+    implementation("one.tranic:t-base:1.2.7")
     implementation("one.tranic:t-utils:1.2.2.1")
-    implementation("one.tranic:t-bukkit:1.0.1") {
+    implementation("one.tranic:t-bukkit:1.0.2") {
         exclude("net.kyori", "adventure-api")
         exclude("net.kyori", "adventure-text-minimessage")
         exclude("net.kyori", "adventure-platform-bukkit")
