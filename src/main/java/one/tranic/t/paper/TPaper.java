@@ -1,45 +1,81 @@
 package one.tranic.t.paper;
 
-import one.tranic.t.base.TBase;
-import one.tranic.t.base.command.source.CommandSource;
+import one.tranic.t.base.TInterface;
 import one.tranic.t.base.command.source.SystemCommandSource;
 import one.tranic.t.base.player.Player;
-import one.tranic.t.base.player.Players;
-import one.tranic.t.bukkit.player.BukkitPlayers;
+import one.tranic.t.bukkit.player.BukkitPlayer;
 import one.tranic.t.paper.command.source.PaperConsoleSource;
-import one.tranic.t.utils.Reflect;
+import one.tranic.t.paper.player.PaperPlayer;
+import one.tranic.t.utils.Collections;
+import one.tranic.t.utils.minecraft.Platform;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class TPaper {
+public class TPaper implements TInterface<CommandSender, org.bukkit.entity.Player> {
     private static boolean initialized = false;
+    private final Plugin plugin;
+    private final Platform[] supportedPlatforms = new Platform[]{Platform.Paper, Platform.ShreddedPaper, Platform.Folia};
 
-    public static void init(Plugin plugin) {
-        if (initialized) return;
-        try {
-            Reflect.setNotNullStaticField(TBase.class, "getConsoleSourceSupplier", (Supplier<CommandSource<?, ?>>) TPaper::getBukkitConsoleSource);
-            Reflect.setNotNullStaticField(Players.class, "getPlayerWithStringMethod", (Function<String, Player<?>>) BukkitPlayers::getPlayer);
-            Reflect.setNotNullStaticField(Players.class, "getPlayerWithUUIDMethod", (Function<UUID, Player<?>>) BukkitPlayers::getPlayer);
-            Reflect.setNotNullStaticField(Players.class, "getOnlinePlayersMethod", (Supplier<List<Player<?>>>) BukkitPlayers::getOnlinePlayers);
-            Reflect.setNotNullStaticField(Players.class, "getPlatformOnlinePlayersMethod", (Supplier<List<?>>) BukkitPlayers::getPlatformOnlinePlayers);
-            Reflect.setNotNullStaticField(Players.class, "getOnlinePlayersNameMethod", (Supplier<List<String>>) BukkitPlayers::getOnlinePlayersName);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        initialized = true;
+    public TPaper(Plugin plugin) {
+        this.plugin = plugin;
+        enable();
     }
 
-    public static void disable() {
+    public void disable() {
         initialized = false;
     }
 
-    public static SystemCommandSource<?, ?> getBukkitConsoleSource() {
+    @Override
+    public void enable() {
+        if (initialized) return;
+        initialized = true;
+    }
+
+    @Override
+    public Platform[] getSupportedPlatforms() {
+        return supportedPlatforms;
+    }
+
+    @Override
+    public @Nullable Player<org.bukkit.entity.Player> getPlayer(@NotNull String name) {
+        return PaperPlayer.createPlayer(name);
+    }
+
+    @Override
+    public @Nullable Player<org.bukkit.entity.Player> getPlayer(@NotNull UUID uuid) {
+        return PaperPlayer.createPlayer(uuid);
+    }
+
+    @Override
+    public @NotNull List<Player<org.bukkit.entity.Player>> getOnlinePlayers() {
+        final List<Player<org.bukkit.entity.Player>> players = Collections.newArrayList();
+        for (var p : Bukkit.getOnlinePlayers())
+            players.add(BukkitPlayer.createPlayer(p));
+        return players;
+    }
+
+    @Override
+    public @NotNull List<org.bukkit.entity.Player> getPlatformOnlinePlayers() {
+        return Collections.newArrayList(Bukkit.getOnlinePlayers());
+    }
+
+    @Override
+    public @NotNull List<String> getOnlinePlayersName() {
+        final List<String> players = Collections.newArrayList();
+        for (var p : Bukkit.getOnlinePlayers())
+            players.add(p.getName());
+        return players;
+    }
+
+    @Override
+    public SystemCommandSource<CommandSender, org.bukkit.entity.Player> getConsoleSource() {
         return new PaperConsoleSource();
     }
 }
